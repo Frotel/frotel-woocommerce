@@ -1,0 +1,34 @@
+.banks {
+    cursor: pointer;
+}
+
+.banks.selected {
+    border: 2px solid green;
+    padding: 0;
+    background: url(pattern.png);
+}
+.item-menu {
+    width:112px;
+    height:115px;
+    float: right;
+    margin-left: 10px;
+}
+.item-menu img {
+    background: #fff;
+}
+
+.center-block {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+.img-circle {
+    border-radius: 50%;
+}
+.img-responsive {
+    display: block;
+    height: auto;
+    max-width: 100%;
+}
+.clear{clear: both;}
+#frotel-payment .btn{margin-top:45px;}
