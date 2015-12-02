@@ -650,8 +650,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
     function add_load_state_js()
     {
         echo '
-        <script type="text/javascript" src="http://new.loc/webservice/ostan.js"></script>
-        <script type="text/javascript" src="http://new.loc/webservice/city.js"></script>
+        <script type="text/javascript" src="http://pc.fpanel.ir/ostan.js"></script>
+        <script type="text/javascript" src="http://pc.fpanel.ir/city.js"></script>
         <script type="text/javascript">
             loadOstan("billing_frotel_state");
             loadOstan("shipping_frotel_state");
