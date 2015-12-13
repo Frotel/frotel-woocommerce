@@ -844,7 +844,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                         return false;
                     t.addClass('disabled');
                     jQuery.ajax({
-                        url:ajaxurl,
+                        url:'<?php echo admin_url('admin-ajax.php','relative'); ?>',
                         type:'post',
                         dataType:'json',
                         data:'action=chose_bank&'+jQuery('#frotel-payment').serialize(),
