@@ -292,10 +292,22 @@ class frotel_helper
         $result = curl_exec($ch);
         //close connection
         curl_close($ch);
-        $result = json_decode($result,true);
-        if (json_last_error() == JSON_ERROR_NONE)
+//        $result = json_decode($result,true);
+        if ($this->isJson($result)) {
+            $result = json_decode($result);
             return $this->parseResponse($result);
-        throw new FrotelResponseException('Failed to Parse Response ('.json_last_error().')');
+        }
+        throw new FrotelResponseException('Failed to Parse Response');
+    }
+
+    /**
+     * check valid json
+     *
+     * @param $string
+     * @return bool
+     */
+    private function isJson($string) {
+        return ((is_string($string) && (is_object(json_decode($string)) || is_array(json_decode($string))))) ? true : false;//PHP Version 5.2.17 server
     }
     /**
      * parse webservice response

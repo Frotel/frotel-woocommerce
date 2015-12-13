@@ -12,7 +12,7 @@ Text Domain: frotel
 
 if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_option('active_plugins')))) {
 
-    require_once __DIR__.'/lib/frotel_helper.php';
+    require_once 'lib/frotel_helper.php';
 
     function frotel_shipping_method_init()
     {
@@ -52,7 +52,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                  */
                 public function init_form_fields()
                 {
-                    $this->form_fields = require(__DIR__.'/include/settings-frotel.php');
+                    $this->form_fields = require('include/settings-frotel.php');
                 }
 
                 /**
