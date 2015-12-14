@@ -897,8 +897,6 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
     function show_factor_thank_you_page($orderId)
     {
         $session = WC()->session->get('frotel_result');
-        var_dump($session);
-        die();
         if (!isset($session['factor']))
             return '';
 
