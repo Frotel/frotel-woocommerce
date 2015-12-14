@@ -294,7 +294,7 @@ class frotel_helper
         curl_close($ch);
 //        $result = json_decode($result,true);
         if ($this->isJson($result)) {
-            $result = json_decode($result);
+            $result = json_decode($result,true);
             return $this->parseResponse($result);
         }
         throw new FrotelResponseException('Failed to Parse Response');
