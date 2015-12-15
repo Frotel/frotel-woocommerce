@@ -304,6 +304,9 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
             public function process_payment($order_id)
             {
+                /**
+                 * @var $woocommerce woocommerce
+                 */
                 global $woocommerce;
                 $order = new WC_Order($order_id);
 
@@ -351,7 +354,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     $basket[] = $item;
                 }
 
-                $chosen_methods = WC()->session->get('chosen_shipping_methods');
+                $chosen_methods = $woocommerce->session->get('chosen_shipping_methods');
                 $chosen_shipping = $chosen_methods[0];
 
                 $chosen_shipping = str_ireplace('frotel_shipping_','',$chosen_shipping);
@@ -431,7 +434,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     unset($result['factor']['view']);
                 }
 
-                WC()->session->set('frotel_result',$result);
+                $woocommerce->session->set('frotel_result',$result);
 
                 if (isset($result['factor']['banks'])) {
                     // change order status
@@ -717,9 +720,12 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             echo json_encode(array('error'=>1,'message'=>'لطفا برای پرداخت هزینه سفارش ، یکی از درگاه های بانکی را انتخاب کنید.'));
             exit;
         }
-
+        /**
+         * @var $woocommerce woocommerce
+         */
+        global $woocommerce;
         $options = get_option('woocommerce_frotel_shipping_settings');
-        $order = WC()->session->get('frotel_result');
+        $order = $woocommerce->session->get('frotel_result');
         if (!isset($order['factor']['id'])) {
             echo json_encode(array('error'=>1,'message'=>'سفارشی برای پرداخت یافت نشد.'));
             exit;
@@ -761,8 +767,15 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
      */
     function frotel_banks()
     {
+        if (is_admin()) {
+            return '';
+        }
+        /**
+         * @var $woocommerce woocommerce
+         */
+        global $woocommerce;
+        $order = $woocommerce->session->get('frotel_result');
         ob_start();
-        $order = WC()->session->get('frotel_result');
 
         if (!isset($order['order_id'])) {
             ?>
@@ -799,7 +812,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                 $wcOrder->add_order_note('پرداخت با موفقیت انجام شد. کد رهگیری '.$result['code']);
                 $order['factor']['code'] = $result['code'];
                 unset($order['factor']['banks']);
-                WC()->session->set('frotel_result',$order);
+                $woocommerce->session->set('frotel_result',$order);
                 ?>
                 <script type="text/javascript">window.location="<?php echo $wcOrder->get_checkout_order_received_url(); ?>";</script>
                 <?php
@@ -912,7 +925,11 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
      */
     function show_factor_thank_you_page($orderId)
     {
-        $session = WC()->session->get('frotel_result');
+        /**
+         * @var $woocommerce woocommerce
+         */
+        global $woocommerce;
+        $session = $woocommerce->session->get('frotel_result');
         if (!isset($session['factor']))
             return '';
 
