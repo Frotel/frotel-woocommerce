@@ -653,14 +653,18 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
         <script type="text/javascript" src="http://pc.fpanel.ir/ostan.js"></script>
         <script type="text/javascript" src="http://pc.fpanel.ir/city.js"></script>
         <script type="text/javascript">
-            loadOstan("billing_frotel_state");
-            loadOstan("shipping_frotel_state");
-            document.getElementById("billing_frotel_state").onchange=function(){ldMenu(this.value,"billing_frotel_city");document.getElementById("billing_frotel_city_name").value="";document.getElementById("billing_frotel_state_name").value = this.options[this.selectedIndex].text;};
-            document.getElementById("shipping_frotel_state").onchange=function(){ldMenu(this.value,"shipping_frotel_city");document.getElementById("shipping_frotel_city_name").value="";document.getElementById("shipping_frotel_state_name").value = this.options[this.selectedIndex].text;};
-
-
-            document.getElementById("billing_frotel_city").onchange=function(){document.getElementById("billing_frotel_city_name").value = this.options[this.selectedIndex].text;};
-            document.getElementById("shipping_frotel_city").onchange=function(){document.getElementById("shipping_frotel_city_name").value = this.options[this.selectedIndex].text;};
+            var billing_frotel_state = document.getElementById("billing_frotel_state");
+            if (billing_frotel_state) {
+                loadOstan("billing_frotel_state");
+                billing_frotel_state.onchange=function(){ldMenu(this.value,"billing_frotel_city");document.getElementById("billing_frotel_city_name").value="";document.getElementById("billing_frotel_state_name").value = this.options[this.selectedIndex].text;};
+                document.getElementById("billing_frotel_city").onchange=function(){document.getElementById("billing_frotel_city_name").value = this.options[this.selectedIndex].text;};
+            }
+            var shipping_frotel_state = document.getElementById("shipping_frotel_state");
+            if (shipping_frotel_state) {
+                loadOstan("shipping_frotel_state");
+                document.getElementById("shipping_frotel_state").onchange=function(){ldMenu(this.value,"shipping_frotel_city");document.getElementById("shipping_frotel_city_name").value="";document.getElementById("shipping_frotel_state_name").value = this.options[this.selectedIndex].text;};
+                document.getElementById("shipping_frotel_city").onchange=function(){document.getElementById("shipping_frotel_city_name").value = this.options[this.selectedIndex].text;};
+            }
 
         </script>';
     }
