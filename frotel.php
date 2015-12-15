@@ -154,7 +154,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                         }
 
                     } catch (FrotelWebserviceException $e) {        // خطا در اجرای دستورات رخ داده باشد
-                        throw new Exception($e->getMessage());
+                        wc_add_notice($e->getMessage(),'error');
+                        return false;
                     } catch (FrotelResponseException $e) {          // خطا در اتصال به سرور فروتل و یا دریافت اطلاعات به صورت نامعتبر
                         // اگر در اتصال به سرور فروتل خطا رخ داده باشد باید هزینه های پیشفرض درنظر گرفته شود
                         $result = array();
