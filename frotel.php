@@ -258,8 +258,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                 $shipping_method = $woocommerce->session->get('chosen_shipping_methods',null);
                 if (!isset($shipping_method[0]))
                     $shipping_method[0] = 'frotel_shipping_sefareshi_posti';
-                $a=$shipping_method;
-                $shipping_method = end(explode('_',$shipping_method[0]));
+                $shipping_method = explode('_',$shipping_method[0]);
+                $shipping_method = end($shipping_method);
 
                 // نمایش روش پرداخت انتخاب شده
                 if ($shipping_method == 'naghdi') {
@@ -629,8 +629,10 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
         );
         $tmp = array();
         foreach($order as $item){
-            $tmp['shipping']['shipping_'.$item] = $fields['shipping']['shipping_'.$item];
-            $tmp['billing']['billing_'.$item] = $fields['billing']['billing_'.$item];
+            if (isset($fields['shipping']['shipping_'.$item]))
+                $tmp['shipping']['shipping_'.$item] = $fields['shipping']['shipping_'.$item];
+            if (isset($fields['billing']['billing_'.$item]))
+                $tmp['billing']['billing_'.$item] = $fields['billing']['billing_'.$item];
         }
 
         $fields['billing'] = $tmp['billing'];
