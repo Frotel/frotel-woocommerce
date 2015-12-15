@@ -67,7 +67,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                 {
                     $options = get_option('woocommerce_frotel_shipping_settings');
 
-                    if ($options['enable'] == 'no')
+                    if ($options['enabled'] == 'no')
                         return false;
 
                     if (strlen($options['url']) == 0 || strlen($options['api']) == 0) {
@@ -144,7 +144,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
                     $frotel_helper = new frotel_helper($options['url'],$options['api']);
                     try {
-                        $key = md5($city.$total_price.$total_weight.$buy_types.$delivery_types);
+                        $key = md5($city.$total_price.$total_weight.json_encode(array($buy_types,$delivery_types)));
 
                         if (isset($_SESSION['frotel_get_prices'][$key])){
                             $result = $_SESSION['frotel_get_prices'][ $key ];
@@ -693,10 +693,19 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
      */
     function frotel_update_order_meta($order_id)
     {
-        update_post_meta($order_id,'_billing_state',esc_attr($_POST['billing_frotel_state_name']));
-        update_post_meta($order_id,'_billing_city',esc_attr($_POST['billing_frotel_city_name']));
-        update_post_meta($order_id,'_shipping_state',esc_attr($_POST['shipping_frotel_state_name']));
-        update_post_meta($order_id,'_shipping_city',esc_attr($_POST['shipping_frotel_city_name']));
+        $billing_state = isset($_POST['billing_frotel_state_name'])?$_POST['billing_frotel_state_name']:'';
+        $billing_city = isset($_POST['billing_frotel_city_name'])?$_POST['billing_frotel_city_name']:'';
+        $shipping_state = isset($_POST['shipping_frotel_state_name'])?$_POST['shipping_frotel_state_name']:'';
+        $shipping_city = isset($_POST['shipping_frotel_city_name'])?$_POST['shipping_frotel_city_name']:'';
+
+        update_post_meta($order_id,'_billing_state',esc_attr($billing_state));
+        update_post_meta($order_id,'_billing_city',esc_attr($billing_city));
+
+        $shipping_city = strlen($shipping_city)?$shipping_city:$billing_city;
+        $shipping_state = strlen($shipping_state)?$shipping_state:$billing_state;
+
+        update_post_meta($order_id,'_shipping_state',esc_attr($shipping_state));
+        update_post_meta($order_id,'_shipping_city',esc_attr($shipping_city));
     }
 
     /**
