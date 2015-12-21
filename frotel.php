@@ -971,7 +971,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     if (t.hasClass('disabled'))
                         return false;
                     t.addClass('disabled');
-                    $('#bank_wait').html('<div class="alert alert-info">در حال اتصال به بانک</div>');
+                    jQuery('#bank_wait').html('<div class="alert alert-info">در حال اتصال به بانک</div>');
                     jQuery.ajax({
                         url:'<?php echo admin_url('admin-ajax.php','relative'); ?>',
                         type:'post',
@@ -990,7 +990,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                         },
                         complete:function(){
                             t.removeClass('disabled');
-                            $('#bank_wait').html('');
+                            jQuery('#bank_wait').html('');
                         }
                     });
                 });
