@@ -111,6 +111,13 @@ return array(
 		'default'       => '',
 		'desc_tip'      => true
 	),
+	'order_packing' => array(
+		'title'         => __('هزینه بسته بندی کلی','woocommerce'),
+		'type'          => 'text',
+        'description'   => __('شما می تونید علاوه بر هزینه ارسال ، هزینه بسته بندی را نیز از خریدار دریافت کنید. نکته مهم : حتما باید این مقدار را در پنل پستی فروتل در بخش اصلاح مشخصات بخش هزینه اضافه بسته بندی وارد کرده باشید.','woocommerce'),
+		'default'       => 0,
+		'desc_tip'      => true
+	),
 	'default_method' => array(
 		'title'         => __('روش پیشفرض','woocommerce'),
 		'type'          => 'select',

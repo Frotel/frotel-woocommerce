@@ -83,13 +83,15 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
                     $total_weight = 0;
                     $emptyBasket = true;
-
+                    $total_packing = 0;
                     foreach ($package['contents'] as $product) {
                         # محصولات مجازی را نمی توان در فروتل ثبت کرد
                         if ($product['data']->virtual != 'no')
                             continue;
 
                         $emptyBasket = false;
+                        $packing = $product['quantity']*intval(get_post_meta($product['data']->id,'packing',true));
+                        $total_packing += $packing;
 
                         if ($product['data']->weight>0)
                             $total_weight += $product['quantity']*$product['data']->get_weight();
@@ -161,16 +163,26 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     if ($options['total_order_free_send']>0 && $total_price >= $options['total_order_free_send'])
                         $free_send = true;
 
+                    $order_packing = intval($options['order_packing']);
+                    if ($free_send) {
+                        $order_packing = 0;
+                        $total_packing = 0;
+                    }
+
+                    $total_price += $total_packing;
+
                     $fixed_online = array(
                         'post'=>$free_send?0:$options['default_fixed_online'],
                         'tax'=>0,
-                        'frotel_service'=>$free_send?0:2000
+                        'frotel_service'=>$free_send?0:2000,
+                        'packing'=>$order_packing
                     );
 
                     $fixed_cod = array(
                         'post'=>$free_send?0:$options['default_fixed_cod'],
                         'tax'=>0,
-                        'frotel_service'=>$free_send?0:2000
+                        'frotel_service'=>$free_send?0:2000,
+                        'packing'=>$order_packing
                     );
 
                     try {
@@ -206,14 +218,16 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                                 $result['naghdi'][frotel_helper::DELIVERY_PISHTAZ] = array(
                                     'post'              => $free_send?0:$options['default_pishtaz_online'],
                                     'tax'               => 0,
-                                    'frotel_service'    => 0
+                                    'frotel_service'    => 0,
+                                    'packing'           => $order_packing
                                 );
                             }
                             if ($deliverySefareshi) {
                                 $result['naghdi'][frotel_helper::DELIVERY_SEFARESHI] = array(
                                     'post'              => $free_send?0:$options['default_sefareshi_online'],
                                     'tax'               => 0,
-                                    'frotel_service'    => 0
+                                    'frotel_service'    => 0,
+                                    'packing'           => $order_packing
                                 );
                             }
 
@@ -226,14 +240,16 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                                 $result['posti'][frotel_helper::DELIVERY_PISHTAZ] = array(
                                     'post'              => $free_send?0:$options['default_pishtaz_cod'],
                                     'tax'               => 0,
-                                    'frotel_service'    => 0
+                                    'frotel_service'    => 0,
+                                    'packing'           => $order_packing
                                 );
                             }
                             if ($deliverySefareshi) {
                                 $result['posti'][frotel_helper::DELIVERY_SEFARESHI] = array(
                                     'post'              => $free_send?0:$options['default_sefareshi_cod'],
                                     'tax'               => 0,
-                                    'frotel_service'    => 0
+                                    'frotel_service'    => 0,
+                                    'packing'           => $order_packing
                                 );
                             }
 
@@ -242,6 +258,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                         }
 
                     }
+                    $total_packing = $free_send?0:$total_packing;
 
                     foreach ($result as $buyType=>$deliveryType) {
                         $buyTypeLabel = $buyType == 'naghdi' ? 'نقدی' : 'پرداخت در محل';
@@ -261,7 +278,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                             $rate = array(
                                 'id'    => $id,
                                 'label' => $deliveryLabel,
-                                'cost'  => convertToShopUnitCurrency($data['post'] + $data['tax'] + $data['frotel_service'])
+                                'cost'  => convertToShopUnitCurrency($data['post'] + $data['tax'] + $data['frotel_service'] + $data['packing'] + $total_packing)
                             );
 
                             $this->add_rate($rate);
@@ -406,7 +423,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     $item['discount'] = 0;
                     $item['free_send'] = $free_send;
                     $item['tax'] = 0;
-
+                    $item['packing'] = intval(get_post_meta($product['data']->id,'packing',true));
                     $basket[] = $item;
                 }
 
