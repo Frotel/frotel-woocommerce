@@ -24,11 +24,15 @@ class frotel_helper
     /**
      * روش ارسال به صورت پیشتاز
      */
-    const DELIEVRY_PISHTAZ      = 1;
+    const DELIVERY_PISHTAZ      = 1;
     /**
      * روش ارسال به صورت سفارشی
      */
-    const DELIEVRY_SEFARESHI    = 2;
+    const DELIVERY_SEFARESHI    = 2;
+    /**
+     * روش ارسال با هزینه ثابت
+     */
+    const DELIVERY_FIXED = 20;
 
     /**
      * list of errors
@@ -104,6 +108,7 @@ class frotel_helper
     {
         return $this->call('order/costCalculation.json',$params);
     }
+
     /**
      * register order method for physical products
      *
@@ -122,10 +127,12 @@ class frotel_helper
      * @param string $pm
      * @param array $basket
      * @param array $fields
+     * @param int $postPrice
+     * @param bool $free_send
      * @return array|bool
      * @throws FrotelResponseException
      */
-    public function registerOrder($name,$family,$gender,$mobile,$phone,$email,$province,$city,$address,$postCode,$buy_type,$send_type,$pm,$basket,$fields=array())
+    public function registerOrder($name,$family,$gender,$mobile,$phone,$email,$province,$city,$address,$postCode,$buy_type,$send_type,$pm,$basket,$fields=array(),$postPrice=0,$free_send=false)
     {
         $params = array(
             'name'      => $name,
@@ -143,6 +150,8 @@ class frotel_helper
             'pm'        => $pm,
             'basket'    => $basket,
             'fields'    => $fields,
+            'post_price'=> $postPrice,
+            'free_send' => $free_send
         );
         return $this->call('order/registerOrder.json',$params);
     }

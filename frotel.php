@@ -131,25 +131,67 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
                     $deliveryPishtaz    = $options['pishtaz_enable'] == 'yes';
                     $deliverySefareshi  = $options['sefareshi_enable'] == 'yes';
+                    $deliveryFixed  = $options['fixed_enable'] == 'yes';
 
                     $delivery_types = array();
                     if ($deliveryPishtaz)
-                        $delivery_types[] = frotel_helper::DELIEVRY_PISHTAZ;
+                        $delivery_types[] = frotel_helper::DELIVERY_PISHTAZ;
 
                     if ($deliverySefareshi)
-                        $delivery_types[] = frotel_helper::DELIEVRY_SEFARESHI;
+                        $delivery_types[] = frotel_helper::DELIVERY_SEFARESHI;
 
                     // convert to gram
                     $total_weight = wc_get_weight($total_weight,'g');
 
                     $frotel_helper = new frotel_helper($options['url'],$options['api']);
+
+                    $options['fixed_city'] = str_replace(' ','',$options['fixed_city']);
+                    $fixed_in_city = explode(',',$options['fixed_city']);
+
+                    /**
+                     * در صورتی که مدیر شهری را وارد نکرده باشد هزینه ثابت برای تمام شهرها فعال می شود.
+                     * اگر شهر کاربر جز شهرهایی که هزینه ثابت برای آنها فعال نبود
+                     */
+                    if (strlen($options['fixed_city']) && in_array($city,$fixed_in_city) === false) {
+                        $deliveryFixed = false;
+                    }
+
+
+                    $free_send = false;
+                    if ($options['total_order_free_send']>0 && $total_price >= $options['total_order_free_send'])
+                        $free_send = true;
+
+                    $fixed_online = array(
+                        'post'=>$free_send?0:$options['default_fixed_online'],
+                        'tax'=>0,
+                        'frotel_service'=>$free_send?0:2000
+                    );
+
+                    $fixed_cod = array(
+                        'post'=>$free_send?0:$options['default_fixed_cod'],
+                        'tax'=>0,
+                        'frotel_service'=>$free_send?0:2000
+                    );
+
                     try {
+                        if ($free_send)
+                            throw new FrotelResponseException('ارسال رایگان');
+
                         $key = md5($city.$total_price.$total_weight.json_encode(array($buy_types,$delivery_types)));
 
                         if (isset($_SESSION['frotel_get_prices'][$key])){
                             $result = $_SESSION['frotel_get_prices'][ $key ];
                         } else {
                             $result = $frotel_helper->getPrices($city, $total_price, $total_weight, $buy_types, $delivery_types);
+
+                            if ($deliveryFixed) {
+                                if ($buyOnline)
+                                    $result['naghdi']['fixed'] = $fixed_online;
+
+                                if ($buyCOD)
+                                    $result['posti']['fixed'] = $fixed_cod;
+                            }
+
                             $_SESSION['frotel_get_prices'][$key] = $result;
                         }
 
@@ -161,36 +203,42 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                         $result = array();
                         if ($buyOnline) {
                             if ($deliveryPishtaz) {
-                                $result['naghdi'][frotel_helper::DELIEVRY_PISHTAZ] = array(
-                                    'post'              => $options['default_pishtaz_online'],
+                                $result['naghdi'][frotel_helper::DELIVERY_PISHTAZ] = array(
+                                    'post'              => $free_send?0:$options['default_pishtaz_online'],
                                     'tax'               => 0,
                                     'frotel_service'    => 0
                                 );
                             }
                             if ($deliverySefareshi) {
-                                $result['naghdi'][frotel_helper::DELIEVRY_SEFARESHI] = array(
-                                    'post'              => $options['default_sefareshi_online'],
+                                $result['naghdi'][frotel_helper::DELIVERY_SEFARESHI] = array(
+                                    'post'              => $free_send?0:$options['default_sefareshi_online'],
                                     'tax'               => 0,
                                     'frotel_service'    => 0
                                 );
                             }
+
+                            if ($deliveryFixed)
+                                $result['naghdi']['fixed'] = $fixed_online;
                         }
 
                         if ($buyCOD) {
                             if ($deliveryPishtaz) {
-                                $result['posti'][frotel_helper::DELIEVRY_PISHTAZ] = array(
-                                    'post'              => $options['default_pishtaz_cod'],
+                                $result['posti'][frotel_helper::DELIVERY_PISHTAZ] = array(
+                                    'post'              => $free_send?0:$options['default_pishtaz_cod'],
                                     'tax'               => 0,
                                     'frotel_service'    => 0
                                 );
                             }
                             if ($deliverySefareshi) {
-                                $result['posti'][frotel_helper::DELIEVRY_SEFARESHI] = array(
-                                    'post'              => $options['default_sefareshi_cod'],
+                                $result['posti'][frotel_helper::DELIVERY_SEFARESHI] = array(
+                                    'post'              => $free_send?0:$options['default_sefareshi_cod'],
                                     'tax'               => 0,
                                     'frotel_service'    => 0
                                 );
                             }
+
+                            if ($deliveryFixed)
+                                $result['posti']['fixed'] = $fixed_cod;
                         }
 
                     }
@@ -198,9 +246,12 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     foreach ($result as $buyType=>$deliveryType) {
                         $buyTypeLabel = $buyType == 'naghdi' ? 'نقدی' : 'پرداخت در محل';
                         foreach ($deliveryType as $delivery=>$data) {
-                            if ($delivery == frotel_helper::DELIEVRY_SEFARESHI) {
+                            if ($delivery == frotel_helper::DELIVERY_SEFARESHI) {
                                 $deliveryLabel = 'سفارشی '.$buyTypeLabel;
                                 $id = $this->id.'_sefareshi_'.$buyType;
+                            } elseif ($delivery == 'fixed') {
+                                $deliveryLabel = 'پیک شهری '.$buyTypeLabel;
+                                $id = $this->id.'_fixed_'.$buyType;
                             } else {
                                 $deliveryLabel = 'پیشتاز '.$buyTypeLabel;
                                 $id = $this->id.'_pishtaz_'.$buyType;
@@ -257,7 +308,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
                 $shipping_method = $woocommerce->session->get('chosen_shipping_methods',null);
                 if (!isset($shipping_method[0]))
-                    $shipping_method[0] = 'frotel_shipping_sefareshi_posti';
+                    return false;
+
                 $shipping_method = explode('_',$shipping_method[0]);
                 $shipping_method = end($shipping_method);
 
@@ -314,7 +366,11 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
                 $products = $woocommerce->cart->get_cart();
 
+                $total_price = convertToRial(floatval(preg_replace('#[^\d.]#', '', $woocommerce->cart->get_cart_total())));
                 $basket = array();
+                $free_send = false;
+                if ($options['total_order_free_send']>0 && $total_price >= $options['total_order_free_send'])
+                    $free_send = true;
 
                 foreach ($products as $product) {
                     # محصولات مجازی را نمی توان در فروتل ثبت کرد
@@ -348,7 +404,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     $item['porsant'] = 0;
                     $item['bazaryab'] = 0;
                     $item['discount'] = 0;
-                    $item['free_send'] = 0;
+                    $item['free_send'] = $free_send;
                     $item['tax'] = 0;
 
                     $basket[] = $item;
@@ -365,6 +421,46 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                 }
 
                 $frotel_helper = new frotel_helper($options['url'],$options['api']);
+
+                if ($chosen_shipping[1] == 'naghdi') {
+                    $buyType = frotel_helper::BUY_ONLINE;
+                } else {
+                    $buyType = frotel_helper::BUY_COD;
+                }
+
+                $postPrice = 0;
+                switch ($chosen_shipping[0]) {
+                    case 'sefareshi':
+                    default:
+                        $deliveryType = frotel_helper::DELIVERY_SEFARESHI;
+                        break;
+                    case 'pishtaz':
+                        $deliveryType = frotel_helper::DELIVERY_PISHTAZ;
+                        break;
+                    case 'fixed':
+                        $options['fixed_city'] = str_replace(' ','',$options['fixed_city']);
+                        $fixed_in_city = explode(',',$options['fixed_city']);
+                        $deliveryFixed  = $options['fixed_enable'] == 'yes';
+
+                        /**
+                         * در صورتی که مدیر شهری را وارد نکرده باشد هزینه ثابت برای تمام شهرها فعال می شود.
+                         * اگر شهر کاربر جز شهرهایی که هزینه ثابت برای آنها فعال نبود
+                         */
+                        if (strlen($options['fixed_city']) && in_array($order->shipping_frotel_city,$fixed_in_city) === false) {
+                            $deliveryFixed = false;
+                        }
+                        if ($deliveryFixed) {
+                            $deliveryType = frotel_helper::DELIVERY_FIXED;
+                            if ($buyType == frotel_helper::BUY_ONLINE)
+                                $postPrice = $free_send ? 0 : $options['default_fixed_online'];
+                            else
+                                $postPrice = $free_send ? 0 : $options['default_fixed_cod'];
+                        } else {
+                            $deliveryType = frotel_helper::DELIVERY_SEFARESHI;
+                        }
+                        break;
+                }
+
                 try{
                     $result = $frotel_helper->registerOrder(
                         $order->shipping_first_name,
@@ -377,11 +473,13 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                         $order->shipping_frotel_city,
                         $order->shipping_address_1.' '.$order->shipping_address_2,
                         $order->shipping_postcode,
-                        $chosen_shipping[1] == 'naghdi' ? frotel_helper::BUY_ONLINE : frotel_helper::BUY_COD,
-                        $chosen_shipping[0] == 'sefareshi' ? frotel_helper::DELIEVRY_SEFARESHI : frotel_helper::DELIEVRY_PISHTAZ,
+                        $buyType,
+                        $deliveryType,
                         $order->customer_note,
                         $basket,
-                        array()
+                        array(),
+                        $postPrice,
+                        $free_send
                     );
                 } catch (FrotelWebserviceException $e) {
                     /**
@@ -861,6 +959,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             <div class="row">
                 <div class="col-md-12">
                     <input type="button" value="ادامه پرداخت" class="btn" />
+                    <div id="bank_wait"></div>
                 </div>
             </div>
         </form>
@@ -872,6 +971,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     if (t.hasClass('disabled'))
                         return false;
                     t.addClass('disabled');
+                    $('#bank_wait').html('<div class="alert alert-info">در حال اتصال به بانک</div>');
                     jQuery.ajax({
                         url:'<?php echo admin_url('admin-ajax.php','relative'); ?>',
                         type:'post',
@@ -890,6 +990,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                         },
                         complete:function(){
                             t.removeClass('disabled');
+                            $('#bank_wait').html('');
                         }
                     });
                 });
