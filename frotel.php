@@ -3,7 +3,7 @@
 Plugin Name: Frotel WooCommerce
 Plugin URI: http://frotel.com/
 Description: افزونه ثبت سفارشات در <strong><a href="http://frotel.com" target="_blank">فروتل</a></strong>
-Version: 1.0
+Version: 1.1
 Author: ReZa ZaRe
 Author URI: http://frotel.com
 Text Domain: frotel
@@ -1056,7 +1056,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
         }
         $options = get_option('woocommerce_frotel_shipping_settings');
 
-        if (!$options['show_factor'] == 'yes') {
+        if ($options['show_factor'] == 'yes') {
             echo '<div class="frotel_factor">'.$session['factor']['view'].'</div>';
         }
     }
