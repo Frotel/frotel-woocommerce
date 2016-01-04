@@ -42,7 +42,7 @@ return array(
 	'fixed_enable' => array(
 		'label'         => __('هزینه ثابت','woocommerce'),
 		'type'          => 'checkbox',
-		'default'       => 'yes',
+		'default'       => 'no',
 	),
 	'online_enable' => array(
 		'title'         => 'روش های پرداخت',
@@ -137,7 +137,7 @@ return array(
 		'desc_tip'      => true
 	),
 	'show_factor' => array(
-			'title' 		=> __( 'Enable/Disable', 'woocommerce' ),
+			'title' 		=> __( 'نمایش فاکتور', 'woocommerce' ),
 			'type' 			=> 'checkbox',
 			'label' 		=> __( 'بعد از ثبت سفارش فاکتور فروتل نمایش داده شود؟', 'woocommerce' ),
 			'default' 		=> 'yes',
