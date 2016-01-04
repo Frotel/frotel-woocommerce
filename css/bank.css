@@ -5,7 +5,9 @@
 .banks.selected {
     border: 2px solid green;
     padding: 0;
-    background: url(pattern.png);
+    background: url(/wp-content/plugins/frotel-woocommerce/css/pattern.png);
+    display: inline-block;
+    text-align: center !important;
 }
 .item-menu {
     width:112px;
@@ -31,4 +33,9 @@
     max-width: 100%;
 }
 .clear{clear: both;}
-#frotel-payment .btn{margin-top:45px;}
+#bank_chose{margin-top:45px;}
+#another_bank{font-size:11px;}
+
+.alert {  padding: 20px;  margin-bottom: 22px;  border: 1px solid transparent;  border-radius: 4px;}
+.alert-info {  background-color: #d9edf7;  border-color: #bce8f1;  color: #31708f;  }
+.alert-success {  background-color: #f0f8e9;  border-color: #e5f2d6;  color: #70ba28;  }

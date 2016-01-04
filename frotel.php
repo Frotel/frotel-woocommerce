@@ -955,7 +955,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             </div>
             <?php } ?>
             <div class="row">
-                <div class="col-md-12">
+                <div class="col-md-12" id="lst_bank_frotel">
             <?php
             foreach($banks as $bank) {
                 ?>
@@ -975,7 +975,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             <div class="clear"></div>
             <div class="row">
                 <div class="col-md-12">
-                    <input type="button" value="ادامه پرداخت" class="btn" />
+                    <input type="button" value="پرداخت" class="btn" id="bank_chose" />
                     <div id="bank_wait"></div>
                 </div>
             </div>
@@ -983,11 +983,12 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
         <div class="frotel_result"></div>
         <script type="text/javascript">
             jQuery(function(){
-                jQuery('.btn').click(function(){
+                jQuery('#bank_chose').click(function(){
                     var t=jQuery(this);
                     if (t.hasClass('disabled'))
                         return false;
                     t.addClass('disabled');
+                    t.val('منتظر بمانید ...');
                     jQuery('#bank_wait').html('<div class="alert alert-info">در حال اتصال به بانک</div>');
                     jQuery.ajax({
                         url:'<?php echo admin_url('admin-ajax.php','relative'); ?>',
@@ -995,21 +996,35 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                         dataType:'json',
                         data:'action=chose_bank&'+jQuery('#frotel-payment').serialize(),
                         success:function(d){
+                            var fr = jQuery('.frotel_result');
                             if (d.error!=undefined){
                                 if(d.error==0){
-                                    jQuery('.frotel_result').html(d.message);
+                                    jQuery('#lst_bank_frotel').slideUp();
+                                    fr.slideDown();
+                                    t.slideUp();
+                                    fr.html('<div class="alert alert-info">'+d.message+'</div><a href="javascript:void(0);" id="another_bank" >انتخاب درگاه دیگر</a>');
                                 }else{
                                     alert(d.message);
+                                    fr.html('');
                                 }
                             }else{
                                 alert('خطا در دریافت اطلاعات از سرور');
+                                fr.html('');
                             }
                         },
                         complete:function(){
                             t.removeClass('disabled');
                             jQuery('#bank_wait').html('');
+                            t.val('پرداخت');
                         }
                     });
+                });
+
+                jQuery(document).on('click','#another_bank',function(e){
+                    e.preventDefault();
+                    jQuery('.frotel_result').slideUp();
+                    jQuery('#lst_bank_frotel').slideDown();
+                    jQuery('#bank_chose').slideDown();
                 });
             });
             function addListener(element, eventName, handler) {
@@ -1052,7 +1067,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             return '';
 
         if (isset($session['factor']['code'])) {
-            echo '<div class="alert alert-success code_tracking">پرداخت شما با موفقیت انجام شد،کد رهگیری پرداخت  شما «<strong>'.$session['factor']['code'].'</strong>» است.</div>';
+            echo '<div class="alert alert-success code_tracking">پرداخت شما با موفقیت انجام شد،کد رهگیری پرداخت  شما «<strong style="color: red;" id="tracking_code">'.$session['factor']['code'].'</strong>» است.</div>';
         }
         $options = get_option('woocommerce_frotel_shipping_settings');
 
