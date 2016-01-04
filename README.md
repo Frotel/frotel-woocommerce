@@ -1,4 +1,4 @@
 ## Frotel Plugin for WooCommerce
-<div dir="rtl">
-افزونه فروتل برای ووکامرس
-</div>
+### Installation
+
+Please read documentation in zip file.
