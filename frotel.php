@@ -398,7 +398,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     if ($product['data']->product_type == 'variation'){
                         $a = array();
                         foreach($product['variation'] as $index=>$attr){
-                            $a[] = urldecode(str_replace('attribute_','',$index)).':'.$attr;
+                            $a[] = urldecode(str_replace('attribute_','',$index).':'.$attr);
                         }
                         $name .= '('.implode(',',$a).')';
                     }
