@@ -3,12 +3,13 @@
 Plugin Name: Frotel WooCommerce
 Plugin URI: http://frotel.com/
 Description: افزونه ثبت سفارشات در <strong><a href="http://frotel.com" target="_blank">فروتل</a></strong>
-Version: 1.2
+Version: 1.3
 Author: ReZa ZaRe
 Author URI: http://frotel.com
 Text Domain: frotel
  **/
 
+const FROTEL_WOOCOMMERCE_VERSION = 1.3;
 
 if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_option('active_plugins')))) {
 
@@ -114,6 +115,9 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     } elseif (isset($post_data['billing_frotel_city']) && intval($post_data['billing_frotel_city'])>0){
                         $city = intval($post_data['billing_frotel_city']);
                     }
+                    $coupon = '';
+                    if (isset($post_data['billing_frotel_coupon']) && strlen($post_data['billing_frotel_coupon']))
+                        $coupon = sanitize_text_field($post_data['billing_frotel_coupon']);
 
                     // اگر شهر مقصد انتخاب نشده بود
                     if ($city<=0){
@@ -206,7 +210,40 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
                             $_SESSION['frotel_get_prices'][$key] = $result;
                         }
+                        if (strlen($coupon)) {
+                            if (isset($_SESSION['frotel_coupon'][$coupon])) {
+                                $coupon = $_SESSION['frotel_coupon'][$coupon];
+                            } else {
+                                $_SESSION['frotel_coupon'][$coupon] = array('error' => 1, 'message' => '');
+                                try {
+                                    $coupon_result = $frotel_helper->checkCoupon($coupon);
+                                    $_SESSION['frotel_coupon'][$coupon] = array('error' => 0, 'message' => $coupon_result);
+                                } catch (FrotelWebserviceException $e) {
+                                    wc_add_notice($e->getMessage(), 'error');
+                                    $_SESSION['frotel_coupon'][$coupon] = array('error' => 1, 'message' => $e->getMessage());
+                                } catch (FrotelResponseException $e) {
+                                }
+                                $coupon = $_SESSION['frotel_coupon'][$coupon];
+                            }
 
+                            if (isset($coupon['error']) && $coupon['error'] == 0) {
+                                $efficacy_type = stripos($coupon['message']['efficacy'], '%') !== false ? 1 : 0;
+                                $efficacy = floatval(str_replace(',', '', $coupon['message']['efficacy']));
+
+                                if ($efficacy_type == 1) { // if type == percent
+                                    $total_discount = $total_price * $efficacy / 100;
+                                } else { // if type == value
+                                    $total_discount = convertToShopUnitCurrency($efficacy);
+                                }
+                                $woocommerce->cart->add_fee(__('تخفیف', 'woocommerce'), $total_discount);
+                                $_SESSION['frotel_coupon_used'] = array(
+                                    'code' => $coupon['message']['code'],
+                                    'efficacy_type' => $efficacy_type,
+                                    'efficacy' => $efficacy
+                                );
+                            }
+
+                        }
                     } catch (FrotelWebserviceException $e) {        // خطا در اجرای دستورات رخ داده باشد
                         wc_add_notice($e->getMessage(),'error');
                         return false;
@@ -496,7 +533,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                         $basket,
                         array(),
                         $postPrice,
-                        $free_send
+                        $free_send,
+                        $order->billing_frotel_coupon
                     );
                 } catch (FrotelWebserviceException $e) {
                     /**
@@ -540,7 +578,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
                 unset($result['items']);
                 $result['order_id'] = $order_id;
-
+                unset($_SESSION['frotel_coupon'],$_SESSION['frotel_coupon_used']);
                 /**
                  * اگر مدیر قصد نداشت تا فاکتور فروتل نمایش داده شود
                  * فاکتور را از نتیجه حذف می کنیم
@@ -669,6 +707,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
      */
     function field_city_province($fields)
     {
+        wp_enqueue_style('chose_bank_stylesheet',plugins_url('css/bank.css?v='.FROTEL_WOOCOMMERCE_VERSION, __FILE__));
+
         // unset core province,city fields
         unset($fields['billing']['billing_state'],$fields['billing']['billing_city'],$fields['shipping']['shipping_state'],$fields['shipping']['shipping_city']);
 
@@ -690,6 +730,21 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             'class'     => array('form-row-first','address-field'),
             'options'   => array(
                 '' => 'استان خود را انتخاب کنید'
+            )
+        );
+
+        $fields['billing']['billing_frotel_coupon'] = array(
+            'type'      => 'text',
+            'label'     => __('Coupon', 'woocommerce'),
+            'class'     => array('form-row-last'),
+        );
+
+        $fields['billing']['billing_frotel_radio'] = array(
+            'type'      => 'radio',
+            'label'     => '',
+            'class'     => array('form-row-wide','radio_button_frotel'),
+            'options'=>array(
+                ''=>''
             )
         );
 
@@ -743,7 +798,9 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             'frotel_city_name',
             'address_1',
             'address_2',
-            'postcode'
+            'postcode',
+            'frotel_coupon',
+            'frotel_radio',
         );
         $tmp = array();
         foreach($order as $item){
@@ -770,6 +827,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
      */
     function add_load_state_js()
     {
+        wp_enqueue_script('add_frotel_js',plugins_url('js/lib.js?v='.FROTEL_WOOCOMMERCE_VERSION,__FILE__));
         echo '
         <script type="text/javascript" src="http://pc.fpanel.ir/ostan.js"></script>
         <script type="text/javascript" src="http://pc.fpanel.ir/city.js"></script>
@@ -786,7 +844,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                 document.getElementById("shipping_frotel_state").onchange=function(){ldMenu(this.value,"shipping_frotel_city");document.getElementById("shipping_frotel_city_name").value="";document.getElementById("shipping_frotel_state_name").value = this.options[this.selectedIndex].text;};
                 document.getElementById("shipping_frotel_city").onchange=function(){document.getElementById("shipping_frotel_city_name").value = this.options[this.selectedIndex].text;};
             }
-
+            var wc_ajax_url_frotel = "'.WooCommerce::instance()->ajax_url().'";
         </script>';
     }
 
@@ -815,9 +873,11 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
         $billing_city = isset($_POST['billing_frotel_city_name'])?$_POST['billing_frotel_city_name']:'';
         $shipping_state = isset($_POST['shipping_frotel_state_name'])?$_POST['shipping_frotel_state_name']:'';
         $shipping_city = isset($_POST['shipping_frotel_city_name'])?$_POST['shipping_frotel_city_name']:'';
+        $billing_coupon = isset($_POST['billing_frotel_coupon'])?$_POST['billing_frotel_coupon']:'';
 
         update_post_meta($order_id,'_billing_state',esc_attr($billing_state));
         update_post_meta($order_id,'_billing_city',esc_attr($billing_city));
+        update_post_meta($order_id,'_billing_coupon',esc_attr($billing_coupon));
 
         $shipping_city = strlen($shipping_city)?$shipping_city:$billing_city;
         $shipping_state = strlen($shipping_state)?$shipping_state:$billing_state;
@@ -871,6 +931,45 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
         echo json_encode(array(
             'error'=>0,
             'message'=>'<div class="start_transaction">برای شروع تراکنش و پرداخت هزینه سفارش بر روی دکمه زیر کلیک کنید: <br />'.$result.'</div>'
+        ));
+        exit;
+    }
+
+    /**
+     * بررسی کد کوپن
+     */
+    function check_coupon()
+    {
+        if (!isset($_POST['coupon']) && intval($_POST['coupon'])<1) {
+            echo json_encode(array('error'=>1,'message'=>'لطفا برای پرداخت هزینه سفارش ، یکی از درگاه های بانکی را انتخاب کنید.'));
+            exit;
+        }
+
+        /**
+         * @var $woocommerce woocommerce
+         */
+        $options = get_option('woocommerce_frotel_shipping_settings');
+        $frotelHelper = new frotel_helper($options['url'],$options['api']);
+        $coupon = sanitize_text_field($_POST['coupon']);
+        try{
+            $result = $frotelHelper->checkCoupon($coupon);
+        } catch (FrotelResponseException $e) {
+            echo json_encode(array(
+                'error'=>1,
+                'message'=>$e->getMessage()
+            ));
+            exit;
+        } catch (FrotelWebserviceException $e) {
+            echo json_encode(array(
+                'error'=>1,
+                'message'=>$e->getMessage()
+            ));
+            exit;
+        }
+
+        echo json_encode(array(
+            'error'=>0,
+            'message'=>'کوپن معتبر است. و به میزان '.$result['efficacy'].' بر روی قیمت کالا تاثیر گذار خواهد بود.'
         ));
         exit;
     }
@@ -1085,6 +1184,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
     add_action('wp_ajax_chose_bank','chose_bank');
     add_action('wp_ajax_nopriv_chose_bank','chose_bank');
+    add_action('wp_ajax_check_coupon','check_coupon');
+    add_action('wp_ajax_nopriv_check_coupon','check_coupon');
 
     add_filter('woocommerce_shipping_methods','add_frotel_shipping_method');
     add_filter('woocommerce_checkout_fields','field_city_province');
@@ -1095,6 +1196,22 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
     add_action('woocommerce_thankyou_frotel','show_factor_thank_you_page');
     add_shortcode('frotel_banks','frotel_banks');
+
+    add_filter('woocommerce_calculated_total','calculated_total_price');
+    function calculated_total_price($total_price)
+    {
+        /**
+         * @var WooCommerce $woocommerce
+         */
+        global $woocommerce;
+        if (isset($_SESSION['frotel_coupon_used'])) {
+            $coupon = $_SESSION['frotel_coupon_used'];
+            $woocommerce->cart->add_fee(__('تخفیف', 'woocommerce'), convertToShopUnitCurrency($coupon['efficacy']));
+            $total_price -= convertToShopUnitCurrency($coupon['efficacy']);
+        }
+
+        return $total_price;
+    }
 
     /**
      * تبدیل مبلغ به ریال

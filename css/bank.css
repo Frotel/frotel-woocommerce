@@ -39,3 +39,55 @@
 .alert {  padding: 20px;  margin-bottom: 22px;  border: 1px solid transparent;  border-radius: 4px;}
 .alert-info {  background-color: #d9edf7;  border-color: #bce8f1;  color: #31708f;  }
 .alert-success {  background-color: #f0f8e9;  border-color: #e5f2d6;  color: #70ba28;  }
+
+.hidden{display:none}
+.radio_button_frotel input:before{
+    content: "بررسی کوپن";
+    display: block;
+    width: 92px;
+    color: #fff;
+    margin-bottom: 0;
+    font-weight: 900;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    background-image: none;
+    white-space: nowrap;
+    padding: 5px 12px;
+    font-size: 12px;
+    line-height: 20px;
+    border-radius: 4px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-transition: all 0.4s ease 0s;
+    -o-transition: all 0.4s ease 0s;
+    transition: all 0.4s ease 0s;
+    text-transform: uppercase;
+    background-color: #4CAF50;
+    border-color: #4CAF50;
+}
+#billing_frotel_radio_field{
+    text-align: left;
+    margin: 15px 0;
+    padding: 0;
+    float: right;
+    clear: none;
+}
+
+#billing_frotel_coupon_field{
+    margin-bottom: 0;
+    float: right;
+    width: 30%;
+}
+
+#billing_frotel_coupon{
+    float: right;
+    width: 207px;
+}
+#billing_frotel_radio_{
+    margin-left: 81px;
+    margin-top: 14px;
+}
+#billing_frotel_radio_field:after{clear:none !important;}

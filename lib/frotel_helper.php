@@ -129,10 +129,11 @@ class frotel_helper
      * @param array $fields
      * @param int $postPrice
      * @param bool $free_send
+     * @param string $coupon
      * @return array|bool
      * @throws FrotelResponseException
      */
-    public function registerOrder($name,$family,$gender,$mobile,$phone,$email,$province,$city,$address,$postCode,$buy_type,$send_type,$pm,$basket,$fields=array(),$postPrice=0,$free_send=false)
+    public function registerOrder($name,$family,$gender,$mobile,$phone,$email,$province,$city,$address,$postCode,$buy_type,$send_type,$pm,$basket,$fields=array(),$postPrice=0,$free_send=false,$coupon='')
     {
         $params = array(
             'name'      => $name,
@@ -151,7 +152,8 @@ class frotel_helper
             'basket'    => $basket,
             'fields'    => $fields,
             'post_price'=> $postPrice,
-            'free_send' => $free_send
+            'free_send' => $free_send,
+            'coupon'    => $coupon
         );
         return $this->call('order/registerOrder.json',$params);
     }
@@ -167,10 +169,11 @@ class frotel_helper
      * @param string $pm
      * @param array $basket
      * @param array $fields
+     * @param string $coupon
      * @return array|bool
      * @throws FrotelResponseException
      */
-    public function registerOrderVirtual($name,$family,$gender,$mobile,$phone,$email,$pm,$basket,$fields=array())
+    public function registerOrderVirtual($name,$family,$gender,$mobile,$phone,$email,$pm,$basket,$fields=array(),$coupon='')
     {
         $params = array(
             'name'      => $name,
@@ -182,6 +185,7 @@ class frotel_helper
             'pm'        => $pm,
             'basket'    => $basket,
             'fields'    => $fields,
+            'coupon'    => $coupon
         );
         return $this->call('order/registerOrderVirtual.json',$params);
     }
@@ -201,10 +205,11 @@ class frotel_helper
      * @param string $pm
      * @param array $basket
      * @param array $fields
+     * @param string $coupon
      * @return array|bool
      * @throws FrotelResponseException
      */
-    public function registerOrderService($name,$family,$gender,$mobile,$phone,$email,$province,$city,$address,$postCode,$pm,$basket,$fields=array())
+    public function registerOrderService($name,$family,$gender,$mobile,$phone,$email,$province,$city,$address,$postCode,$pm,$basket,$fields=array(),$coupon='')
     {
         $params = array(
             'name'      => $name,
@@ -220,6 +225,7 @@ class frotel_helper
             'pm'        => $pm,
             'basket'    => $basket,
             'fields'    => $fields,
+            'coupon'    => $coupon
         );
         return $this->call('order/registerOrderService.json',$params);
     }
@@ -272,6 +278,22 @@ class frotel_helper
             'ref'       => $ref
         );
         return $this->call('payment/checkPay.json',$params);
+    }
+
+    /**
+     * بررسی کد کوپن
+     * 
+     * @param string $coupon
+     * @return array|bool
+     * @throws FrotelResponseException
+     */
+    public function checkCoupon($coupon)
+    {
+        $params = array(
+            'code'      => $coupon
+        );
+
+        return $this->call('order/checkCoupon.json',$params);
     }
     /**
      * call method in webservice
