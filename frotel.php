@@ -710,8 +710,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
         wp_enqueue_style('chose_bank_stylesheet',plugins_url('css/bank.css?v='.FROTEL_WOOCOMMERCE_VERSION, __FILE__));
 
         // unset core province,city fields
-        unset($fields['billing']['billing_state'],$fields['billing']['billing_city'],$fields['shipping']['shipping_state'],$fields['shipping']['shipping_city']);
-
+//        unset($fields['billing']['billing_state'],$fields['billing']['billing_city'],$fields['shipping']['shipping_state'],$fields['shipping']['shipping_city']);
+        $fields['billing']['billing_state']['class'] = $fields['billing']['billing_city']['class'] = $fields['billing']['shipping_state']['class'] = $fields['billing']['shipping_city']['class'] = array('hidden');
         // add frotel province,city fields
         $fields['billing']['billing_frotel_state'] = array(
             'type'      => 'select',
@@ -801,6 +801,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             'postcode',
             'frotel_coupon',
             'frotel_radio',
+            'state',
+            'city',
         );
         $tmp = array();
         foreach($order as $item){
