@@ -41,6 +41,9 @@ Please read documentation in zip file.
 لطفا راهنمای موجود در فایل فشرده را مطالعه کنید.
 
 == Changelog ==
+= 1.3.2 =
+fix bug empty province,city
+
 = 1.3.1 =
 Now you can disable frotel coupon
 

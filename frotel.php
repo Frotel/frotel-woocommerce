@@ -3,13 +3,13 @@
 Plugin Name: Frotel WooCommerce
 Plugin URI: http://frotel.com/
 Description: افزونه ثبت سفارشات در <strong><a href="http://frotel.com" target="_blank">فروتل</a></strong>
-Version: 1.3
+Version: 1.3.2
 Author: ReZa ZaRe
 Author URI: http://frotel.com
 Text Domain: frotel
  **/
 
-const FROTEL_WOOCOMMERCE_VERSION = 1.3;
+const FROTEL_WOOCOMMERCE_VERSION = '1.3.2';
 
 if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_option('active_plugins')))) {
 
@@ -709,9 +709,9 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
     {
         wp_enqueue_style('chose_bank_stylesheet',plugins_url('css/bank.css?v='.FROTEL_WOOCOMMERCE_VERSION, __FILE__));
 
-        // unset core province,city fields
-//        unset($fields['billing']['billing_state'],$fields['billing']['billing_city'],$fields['shipping']['shipping_state'],$fields['shipping']['shipping_city']);
+        // override core province,city fields
         $fields['billing']['billing_state']['class'] = $fields['billing']['billing_city']['class'] = $fields['billing']['shipping_state']['class'] = $fields['billing']['shipping_city']['class'] = array('hidden');
+        $fields['billing']['billing_state']['required'] = $fields['billing']['billing_city']['required'] = $fields['billing']['shipping_state']['required'] = $fields['billing']['shipping_city']['required'] = false;
         // add frotel province,city fields
         $fields['billing']['billing_frotel_state'] = array(
             'type'      => 'select',
