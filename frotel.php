@@ -733,20 +733,23 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             )
         );
 
-        $fields['billing']['billing_frotel_coupon'] = array(
-            'type'      => 'text',
-            'label'     => __('Coupon', 'woocommerce'),
-            'class'     => array('form-row-last'),
-        );
+        $frotel_options = get_option('woocommerce_frotel_shipping_settings');
+        if (isset($frotel_options['enable_coupon']) && $frotel_options['enable_coupon'] == 'yes') {
+            $fields['billing']['billing_frotel_coupon'] = array(
+                'type' => 'text',
+                'label' => __('Coupon', 'woocommerce'),
+                'class' => array('form-row-last'),
+            );
 
-        $fields['billing']['billing_frotel_radio'] = array(
-            'type'      => 'radio',
-            'label'     => '',
-            'class'     => array('form-row-wide','radio_button_frotel'),
-            'options'=>array(
-                ''=>''
-            )
-        );
+            $fields['billing']['billing_frotel_radio'] = array(
+                'type' => 'radio',
+                'label' => '',
+                'class' => array('form-row-wide', 'radio_button_frotel'),
+                'options' => array(
+                    '' => ''
+                )
+            );
+        }
 
         $fields['billing']['billing_frotel_state_name'] = array(
             'class'     => array('hidden')
@@ -1186,8 +1189,19 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
     add_action('wp_ajax_chose_bank','chose_bank');
     add_action('wp_ajax_nopriv_chose_bank','chose_bank');
-    add_action('wp_ajax_check_coupon','check_coupon');
-    add_action('wp_ajax_nopriv_check_coupon','check_coupon');
+
+    $frotel_options = get_option('woocommerce_frotel_shipping_settings');
+    if (isset($frotel_options['enable_coupon']) && $frotel_options['enable_coupon'] == 'yes') {
+        add_filter('woocommerce_coupons_enabled','disable_woocommerce_coupon');
+        function disable_woocommerce_coupon()
+        {
+            return false;
+        }
+
+
+        add_action('wp_ajax_check_coupon', 'check_coupon');
+        add_action('wp_ajax_nopriv_check_coupon', 'check_coupon');
+    }
 
     add_filter('woocommerce_shipping_methods','add_frotel_shipping_method');
     add_filter('woocommerce_checkout_fields','field_city_province');

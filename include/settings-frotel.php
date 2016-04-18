@@ -142,4 +142,11 @@ return array(
 			'label' 		=> __( 'بعد از ثبت سفارش فاکتور فروتل نمایش داده شود؟', 'woocommerce' ),
 			'default' 		=> 'yes',
 	),
+	'enable_coupon' => array(
+			'title' 		=> __( 'کوپن', 'woocommerce' ),
+			'type' 			=> 'checkbox',
+			'label' 		=> __( 'آیا کوپن سیستم فروتل فعال باشد؟', 'woocommerce' ),
+			'description'	=> __('با فعال کردن این گزینه، سیستم کوپن داخلی ووکامرس غیرفعال می شود.','woocommerce'),
+			'default' 		=> 'no',
+	),
 );

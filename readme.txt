@@ -41,6 +41,11 @@ Please read documentation in zip file.
 لطفا راهنمای موجود در فایل فشرده را مطالعه کنید.
 
 == Changelog ==
+= 1.3.1 =
+Now you can disable frotel coupon
+
+= 1.3 =
+support frotel coupon
 
 = 1.2 =
 add to wordpress plugins
