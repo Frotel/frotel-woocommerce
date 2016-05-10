@@ -842,30 +842,6 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
     }
 
     /**
-     * ست کردن اسم استان و شهر
-     *
-     * @param int $order_id
-     */
-    function frotel_update_order_meta($order_id)
-    {
-        $billing_state = isset($_POST['billing_frotel_state_name'])?$_POST['billing_frotel_state_name']:'';
-        $billing_city = isset($_POST['billing_frotel_city_name'])?$_POST['billing_frotel_city_name']:'';
-        $shipping_state = isset($_POST['shipping_frotel_state_name'])?$_POST['shipping_frotel_state_name']:'';
-        $shipping_city = isset($_POST['shipping_frotel_city_name'])?$_POST['shipping_frotel_city_name']:'';
-        $billing_coupon = isset($_POST['billing_frotel_coupon'])?$_POST['billing_frotel_coupon']:'';
-
-        update_post_meta($order_id,'_billing_state',esc_attr($billing_state));
-        update_post_meta($order_id,'_billing_city',esc_attr($billing_city));
-        update_post_meta($order_id,'_billing_coupon',esc_attr($billing_coupon));
-
-        $shipping_city = strlen($shipping_city)?$shipping_city:$billing_city;
-        $shipping_state = strlen($shipping_state)?$shipping_state:$billing_state;
-
-        update_post_meta($order_id,'_shipping_state',esc_attr($shipping_state));
-        update_post_meta($order_id,'_shipping_city',esc_attr($shipping_city));
-    }
-
-    /**
      * نمایش درگاه های بانکی برای پرداخت سفارشات نقدی
      */
     function chose_bank()
@@ -1182,7 +1158,6 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
     add_action('woocommerce_shipping_init','frotel_shipping_method_init');
     add_action('woocommerce_after_checkout_form','add_load_state_js');
-    add_action('woocommerce_checkout_update_order_meta','frotel_update_order_meta');
 
     add_action('woocommerce_thankyou_frotel','show_factor_thank_you_page');
     add_shortcode('frotel_banks','frotel_banks');
