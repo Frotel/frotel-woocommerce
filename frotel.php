@@ -67,7 +67,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                 public function calculate_shipping ($package)
                 {
                     $options = get_option('woocommerce_frotel_shipping_settings');
-
+ 
                     if ($options['enabled'] == 'no')
                         return false;
 
@@ -110,10 +110,10 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                     else
                         $post_data = $_POST;
 
-                    if (isset($post_data['shipping_frotel_city']) && intval($post_data['shipping_frotel_city'])>0){
-                        $city = intval($post_data['shipping_frotel_city']);
-                    } elseif (isset($post_data['billing_frotel_city']) && intval($post_data['billing_frotel_city'])>0){
-                        $city = intval($post_data['billing_frotel_city']);
+                    if (isset($post_data['shipping_city']) && intval($post_data['shipping_city'])>0){
+                        $city = intval($post_data['shipping_city']);
+                    } elseif (isset($post_data['billing_city']) && intval($post_data['billing_city'])>0){
+                        $city = intval($post_data['billing_city']);
                     }
                     $coupon = '';
                     if (isset($post_data['billing_frotel_coupon']) && strlen($post_data['billing_frotel_coupon']))
@@ -523,8 +523,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                         $order->billing_phone,
                         '',
                         $order->billing_email,
-                        $order->shipping_frotel_state,
-                        $order->shipping_frotel_city,
+                        $order->shipping_state,
+                        $order->shipping_city,
                         $order->shipping_address_1.' '.$order->shipping_address_2,
                         $order->shipping_postcode,
                         $buyType,
@@ -698,6 +698,24 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
         delete_option("frotel_chose_bank_page_id");
     }
 
+
+    add_filter( 'woocommerce_states', 'custom_frotel_woocommerce_states' ,99);
+    // add state and cities based on frotel ID. and disable Persian Woocommerce states and cities
+    function custom_frotel_woocommerce_states( $states ) {
+        // disable default state and city from persian woocommerce
+        update_option('woocommerce_enable_iran_cities','no');
+        $fstates = json_decode(file_get_contents('http://pc.fpanel.ir/city.json'),true);
+        $tmp_states = array();
+        foreach($fstates as $state){
+            $tmp_states[$state['id']] =  $state['name'];
+        }
+        $states['IR'] = $tmp_states;
+        return $states;
+    }
+
+
+
+
     /**
      * اضافه کردن فیلد های شهر  و استان به فرم
      *
@@ -708,31 +726,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
     function field_city_province($fields)
     {
         wp_enqueue_style('chose_bank_stylesheet',plugins_url('css/bank.css?v='.FROTEL_WOOCOMMERCE_VERSION, __FILE__));
-
-        // override core province,city fields
-        $fields['billing']['billing_state']['class'] = $fields['billing']['billing_city']['class'] = $fields['billing']['shipping_state']['class'] = $fields['billing']['shipping_city']['class'] = array('hidden');
-        $fields['billing']['billing_state']['required'] = $fields['billing']['billing_city']['required'] = $fields['billing']['shipping_state']['required'] = $fields['billing']['shipping_city']['required'] = false;
-        // add frotel province,city fields
-        $fields['billing']['billing_frotel_state'] = array(
-            'type'      => 'select',
-            'label'     => __('Province', 'woocommerce'),
-            'required'  => true,
-            'class'     => array('form-row-first','address-field'),
-            'options'   => array(
-                '' => 'استان خود را انتخاب کنید'
-            )
-        );
-
-        $fields['billing']['billing_frotel_city'] = array(
-            'type'      => 'select',
-            'label'     => __('City', 'woocommerce'),
-            'required'  => true,
-            'class'     => array('form-row-first','address-field'),
-            'options'   => array(
-                '' => 'استان خود را انتخاب کنید'
-            )
-        );
-
+        
         $frotel_options = get_option('woocommerce_frotel_shipping_settings');
         if (isset($frotel_options['enable_coupon']) && $frotel_options['enable_coupon'] == 'yes') {
             $fields['billing']['billing_frotel_coupon'] = array(
@@ -750,26 +744,7 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
                 )
             );
         }
-
-        $fields['billing']['billing_frotel_state_name'] = array(
-            'class'     => array('hidden')
-        );
-
-        $fields['billing']['billing_frotel_city_name'] = array(
-            'class'     => array('hidden')
-        );
-
-        $fields['shipping']['shipping_frotel_state'] = array(
-            'type'      => 'select',
-            'label'     => __('Province', 'woocommerce'),
-            'required'  => true,
-            'class'     => array('form-row-first','address-field'),
-            'options'   => array(
-                '' => 'استان خود را انتخاب کنید'
-            )
-        );
-
-        $fields['shipping']['shipping_frotel_city'] = array(
+        $fields['billing']['billing_city'] = array(
             'type'      => 'select',
             'label'     => __('City', 'woocommerce'),
             'required'  => true,
@@ -777,6 +752,13 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             'options'   => array(
                 '' => 'استان خود را انتخاب کنید'
             )
+        );
+        $fields['billing']['billing_frotel_state_name'] = array(
+            'class'     => array('hidden')
+        );
+
+        $fields['billing']['billing_frotel_city_name'] = array(
+            'class'     => array('hidden')
         );
 
         $fields['shipping']['shipping_frotel_state_name'] = array(
@@ -834,21 +816,13 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
     {
         wp_enqueue_script('add_frotel_js',plugins_url('js/lib.js?v='.FROTEL_WOOCOMMERCE_VERSION,__FILE__));
         echo '
-        <script type="text/javascript" src="http://pc.fpanel.ir/ostan.js"></script>
         <script type="text/javascript" src="http://pc.fpanel.ir/city.js"></script>
         <script type="text/javascript">
-            var billing_frotel_state = document.getElementById("billing_frotel_state");
-            if (billing_frotel_state) {
-                loadOstan("billing_frotel_state");
-                billing_frotel_state.onchange=function(){ldMenu(this.value,"billing_frotel_city");document.getElementById("billing_frotel_city_name").value="";document.getElementById("billing_frotel_state_name").value = this.options[this.selectedIndex].text;};
-                document.getElementById("billing_frotel_city").onchange=function(){document.getElementById("billing_frotel_city_name").value = this.options[this.selectedIndex].text;};
-            }
-            var shipping_frotel_state = document.getElementById("shipping_frotel_state");
-            if (shipping_frotel_state) {
-                loadOstan("shipping_frotel_state");
-                document.getElementById("shipping_frotel_state").onchange=function(){ldMenu(this.value,"shipping_frotel_city");document.getElementById("shipping_frotel_city_name").value="";document.getElementById("shipping_frotel_state_name").value = this.options[this.selectedIndex].text;};
-                document.getElementById("shipping_frotel_city").onchange=function(){document.getElementById("shipping_frotel_city_name").value = this.options[this.selectedIndex].text;};
-            }
+            jQuery(function(){           
+                jQuery("select#billing_state").change(function(){
+                        ldMenu(jQuery(this).val(),"billing_city");               
+                })
+            });
             var wc_ajax_url_frotel = "'.WooCommerce::instance()->ajax_url().'";
         </script>';
     }
