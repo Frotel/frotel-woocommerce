@@ -754,26 +754,13 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             'type'      => 'select',
             'label'     => __('City', 'woocommerce'),
             'required'  => true,
-            'class'     => array('form-row-first','address-field'),
+            'class'     => array('address-field','form-row-last'),
             'options'   => array(
                 '' => 'استان خود را انتخاب کنید'
             )
         );
-        $fields['billing']['billing_frotel_state_name'] = array(
-            'class'     => array('hidden')
-        );
 
-        $fields['billing']['billing_frotel_city_name'] = array(
-            'class'     => array('hidden')
-        );
-
-        $fields['shipping']['shipping_frotel_state_name'] = array(
-            'class'     => array('hidden')
-        );
-
-        $fields['shipping']['shipping_frotel_city_name'] = array(
-            'class'     => array('hidden')
-        );
+        $fields['billing']['billing_state']['clear'] = true;
 
         // reorder fields
         $order = array(
@@ -783,17 +770,13 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
             'email',
             'phone',
             'country',
-            'frotel_state',
-            'frotel_city',
-            'frotel_state_name',
-            'frotel_city_name',
+            'city',
+            'state',
             'address_1',
             'address_2',
             'postcode',
             'frotel_coupon',
             'frotel_radio',
-            'state',
-            'city',
         );
         $tmp = array();
         foreach($order as $item){
