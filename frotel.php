@@ -12,6 +12,14 @@ Text Domain: frotel
 const FROTEL_WOOCOMMERCE_VERSION = '1.3.2';
 
 if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_option('active_plugins')))) {
+    /**
+     * غیر فعال کردن لیست شهر های ووکامرس پارسی
+     */
+    $pw_options = get_option('PW_Options');
+    if(isset($pw_options['enable_iran_cities'])) {
+        $pw_options['enable_iran_cities'] = 'no';
+        update_option('PW_Options',$pw_options);
+    }
 
     require_once 'lib/frotel_helper.php';
 
@@ -700,10 +708,8 @@ if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_opt
 
 
     add_filter( 'woocommerce_states', 'custom_frotel_woocommerce_states' ,99);
-    // add state and cities based on frotel ID. and disable Persian Woocommerce states and cities
+    // add state and cities based on frotel ID
     function custom_frotel_woocommerce_states( $states ) {
-        // disable default state and city from persian woocommerce
-        update_option('woocommerce_enable_iran_cities','no');
         $fstates = json_decode(file_get_contents('http://pc.fpanel.ir/city.json'),true);
         $tmp_states = array();
         foreach($fstates as $state){
