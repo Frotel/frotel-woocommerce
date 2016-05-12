@@ -3,7 +3,7 @@ Contributors: reza1607
 Tags: frotel, cod, cash on delivery, woocommerce, shop, post iran, iranian, persian, woo commerce, ecommerce, e-commerce, shipping, payment
 Requires at least: 3.0.1
 Tested up to: 4.3
-Stable tag: 1.3
+Stable tag: 1.3.3
 License: GPLv2
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -41,6 +41,9 @@ Please read documentation in zip file.
 لطفا راهنمای موجود در فایل فشرده را مطالعه کنید.
 
 == Changelog ==
+= 1.3.3 =
+fix minor bug
+
 = 1.3.2 =
 fix bug empty province,city
 

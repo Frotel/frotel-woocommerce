@@ -3,13 +3,13 @@
 Plugin Name: Frotel WooCommerce
 Plugin URI: http://frotel.com/
 Description: افزونه ثبت سفارشات در <strong><a href="http://frotel.com" target="_blank">فروتل</a></strong>
-Version: 1.3.2
+Version: 1.3.3
 Author: ReZa ZaRe
 Author URI: http://frotel.com
 Text Domain: frotel
  **/
 
-const FROTEL_WOOCOMMERCE_VERSION = '1.3.2';
+const FROTEL_WOOCOMMERCE_VERSION = '1.3.3';
 
 if(in_array('woocommerce/woocommerce.php',apply_filters('active_plugins',get_option('active_plugins')))) {
     /**
